@@ -1,4 +1,4 @@
-~~~ 환경 설정 ~~~ 
+환경 설정
 
 project
  1. SDK- API23: Android 6.0 (Mashmallow)
