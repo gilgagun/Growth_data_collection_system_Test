@@ -1,6 +1,9 @@
 package com.example.myapplication;
 
+import static android.content.ContentValues.TAG;
+
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -15,8 +18,17 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -144,6 +156,7 @@ public class SttTts extends AppCompatActivity implements TextToSpeech.OnInitList
         @Override
         public void onResults(Bundle results) {
             ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            txtInMsg = (TextView) findViewById(R.id.sttResult);
 
             String resultStr = "";
 
@@ -154,6 +167,13 @@ public class SttTts extends AppCompatActivity implements TextToSpeech.OnInitList
 
             if(resultStr.length() < 1) return;
             resultStr = resultStr.replace(" ", "");
+
+            Log.e("STT",resultStr);
+
+            // 서버로 결과 텍스트 전송
+            sendServer(resultStr);
+
+            funcVoiceOut(resultStr);
 
 //            moveActivity(resultStr);
         }
@@ -207,5 +227,28 @@ public class SttTts extends AppCompatActivity implements TextToSpeech.OnInitList
             mRecognizer=null;
         }
         super.onDestroy();
+    }
+
+    // 서버로 결과 텍스트 전송
+    public void sendServer(String text) {
+        Response.Listener<String> responseListener = response -> {
+            try {
+                JSONObject jsonResponse = new JSONObject(response);
+                boolean success = jsonResponse.getBoolean("success"); // key값이 successs인 것을 가져옴
+
+                if (success) { // 회원가입 성공시 success 값이 true
+                    Toast.makeText(getApplicationContext(), "STT 저장 성공", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "STT 저장 실패", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        };
+        //서버로 Volley 이용해 요청
+        SttRequest sttRequest = new SttRequest(text, responseListener);
+        RequestQueue queue = Volley.newRequestQueue(SttTts.this);
+        queue.add(sttRequest);
     }
 }
