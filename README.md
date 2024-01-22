@@ -1,6 +1,6 @@
 # 환경 설정
 
-project
+test project
  1. SDK- API23: Android 6.0 (Mashmallow)
  
 emulator
